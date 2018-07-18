@@ -1,4 +1,4 @@
-package com.example.iram.photofilters;
+package com.example.iram.photofilters.Fragments;
 
 
 import android.graphics.Bitmap;
@@ -15,6 +15,8 @@ import android.view.ViewGroup;
 
 import com.example.iram.photofilters.Adapter.ThumbnailAdapter;
 import com.example.iram.photofilters.Interface.FiltersListFragmentListener;
+import com.example.iram.photofilters.Activities.MainActivity;
+import com.example.iram.photofilters.R;
 import com.example.iram.photofilters.Utils.BitmapUtils;
 import com.example.iram.photofilters.Utils.SpacesItemDecoration;
 import com.zomato.photofilters.FilterPack;
@@ -22,7 +24,6 @@ import com.zomato.photofilters.imageprocessors.Filter;
 import com.zomato.photofilters.utils.ThumbnailItem;
 import com.zomato.photofilters.utils.ThumbnailsManager;
 
-import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package com.example.iram.photofilters;
+package com.example.iram.photofilters.Fragments;
 
 
 import android.os.Bundle;
@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.SeekBar;
 
 import com.example.iram.photofilters.Interface.EditImageFragmentListener;
+import com.example.iram.photofilters.R;
 
 
 /**

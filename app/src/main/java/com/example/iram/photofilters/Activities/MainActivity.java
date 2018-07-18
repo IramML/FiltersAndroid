@@ -1,8 +1,9 @@
-package com.example.iram.photofilters;
+package com.example.iram.photofilters.Activities;
 
 import android.Manifest;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
@@ -20,8 +21,11 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.example.iram.photofilters.Adapter.ViewPagerAdapter;
+import com.example.iram.photofilters.Fragments.EditImageFragment;
+import com.example.iram.photofilters.Fragments.FiltersListFragment;
 import com.example.iram.photofilters.Interface.EditImageFragmentListener;
 import com.example.iram.photofilters.Interface.FiltersListFragmentListener;
+import com.example.iram.photofilters.R;
 import com.example.iram.photofilters.Utils.BitmapUtils;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.MultiplePermissionsReport;
@@ -193,6 +197,7 @@ public class MainActivity extends AppCompatActivity implements FiltersListFragme
                                         System.currentTimeMillis()+ "_profile.jpg", null);
                                 if (!TextUtils.isEmpty(path)){
                                     Snackbar snackbar=Snackbar.make(coordinatorLayout, "Image saved to galery", Snackbar.LENGTH_LONG)
+                                            .setActionTextColor(Color.WHITE)
                                             .setAction("Open", new View.OnClickListener() {
                                                 @Override
                                                 public void onClick(View view) {
@@ -252,7 +257,7 @@ public class MainActivity extends AppCompatActivity implements FiltersListFragme
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (resultCode==RESULT_OK && requestCode==PERMISSION_PICK_NAME){
-            Bitmap bitmap=BitmapUtils.getBitmapFromGalery(this, data.getData(), 800, 800);
+            Bitmap bitmap=BitmapUtils.getBitmapFromGallery(this, data.getData(), 800, 800);
 
             originalBitmap.recycle();
             finalBitmap.recycle();

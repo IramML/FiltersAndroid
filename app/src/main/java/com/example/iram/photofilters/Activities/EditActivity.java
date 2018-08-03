@@ -3,12 +3,17 @@ package com.example.iram.photofilters.Activities;
 import android.Manifest;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Environment;
+import android.os.Handler;
+import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
+import android.support.v4.content.FileProvider;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -37,11 +42,16 @@ import com.zomato.photofilters.imageprocessors.subfilters.BrightnessSubFilter;
 import com.zomato.photofilters.imageprocessors.subfilters.ContrastSubFilter;
 import com.zomato.photofilters.imageprocessors.subfilters.SaturationSubfilter;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 
-public class MainActivity extends AppCompatActivity implements FiltersListFragmentListener, EditImageFragmentListener{
+public class EditActivity extends AppCompatActivity implements FiltersListFragmentListener, EditImageFragmentListener{
     public static final String pictureName="default.jpg";
     public static final int PERMISSION_PICK_NAME=1000;
 
@@ -59,6 +69,11 @@ public class MainActivity extends AppCompatActivity implements FiltersListFragme
     float saturationFinal=1.0f;
     float constrantFinal=1.0f;
 
+    public static final int PERMISSION_TAKE_PICTURE=100;
+
+    String urlCurrentImage="";
+
+    int action=0;
 
     static {
         System.loadLibrary("NativeImageProcessor");
@@ -66,7 +81,7 @@ public class MainActivity extends AppCompatActivity implements FiltersListFragme
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_edit);
         Toolbar toolbar=findViewById(R.id.toolBar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -76,14 +91,17 @@ public class MainActivity extends AppCompatActivity implements FiltersListFragme
         tabLayout=(TabLayout) findViewById(R.id.tabs);
         viewPager=(ViewPager) findViewById(R.id.viewPager);
         coordinatorLayout=(CoordinatorLayout) findViewById(R.id.coordinator);
-
         loadImage();
 
         setupViewPager(viewPager);
         tabLayout.setupWithViewPager(viewPager);
-
+        action=getIntent().getIntExtra("ACTION", 0);
+        if (action==1) {
+            openImageFromGallery();
+        }else if(action==2){
+            openCamera();
+        }
     }
-
     private void loadImage() {
         originalBitmap= BitmapUtils.getBitmapFromAssets(this, pictureName, 300, 300);
         filteredBitmap=originalBitmap.copy(Bitmap.Config.ARGB_8888, true);
@@ -213,7 +231,7 @@ public class MainActivity extends AppCompatActivity implements FiltersListFragme
                                 e.printStackTrace();
                             }
                         }else{
-                            Toast.makeText(MainActivity.this, "Permission denied",Toast.LENGTH_SHORT).show();
+                            Toast.makeText(EditActivity.this, "Permission denied",Toast.LENGTH_SHORT).show();
                         }
                     }
 
@@ -258,7 +276,6 @@ public class MainActivity extends AppCompatActivity implements FiltersListFragme
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (resultCode==RESULT_OK && requestCode==PERMISSION_PICK_NAME){
             Bitmap bitmap=BitmapUtils.getBitmapFromGallery(this, data.getData(), 800, 800);
-
             originalBitmap.recycle();
             finalBitmap.recycle();
             filteredBitmap.recycle();
@@ -271,5 +288,76 @@ public class MainActivity extends AppCompatActivity implements FiltersListFragme
 
             filtersListFragment.displayThumbnail(originalBitmap);
         }
+        if(requestCode==PERMISSION_TAKE_PICTURE && resultCode==RESULT_OK){
+            Uri uri=Uri.parse(urlCurrentImage);
+            Bitmap bitmap=BitmapUtils.getBitmapFromCamera(this, uri, 800, 800);
+            originalBitmap.recycle();
+            finalBitmap.recycle();
+            filteredBitmap.recycle();
+
+            originalBitmap=bitmap.copy(Bitmap.Config.ARGB_8888, true);
+            finalBitmap=originalBitmap.copy(Bitmap.Config.ARGB_8888, true);
+            filteredBitmap=originalBitmap.copy(Bitmap.Config.ARGB_8888, true);
+            imgPreview.setImageBitmap(originalBitmap);
+            bitmap.recycle();
+            int secs=5;
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    filtersListFragment.displayThumbnail(originalBitmap);
+                }
+            },secs*1000); // afterDelay will be executed after (secs*1000) milliseconds.
+
+
+        }
+        if ((resultCode==RESULT_CANCELED && requestCode==PERMISSION_PICK_NAME)||(resultCode==RESULT_CANCELED && requestCode==PERMISSION_TAKE_PICTURE)){
+            finish();
+        }
+    }
+
+    private void openCamera() {
+        Dexter.withActivity(this)
+                .withPermissions(Manifest.permission.READ_EXTERNAL_STORAGE,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA)
+                .withListener(new MultiplePermissionsListener() {
+                    @Override
+                    public void onPermissionsChecked(MultiplePermissionsReport report) {
+                        if(report.areAllPermissionsGranted()){
+                            Intent intent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                            File fileImage;
+                            fileImage=createImageFile();
+                            if (fileImage!=null){
+                                Uri urlImage= FileProvider.getUriForFile(EditActivity.this, "com.example.iram.photofilters.android.fileprovider", fileImage);
+                                intent.putExtra(MediaStore.EXTRA_OUTPUT, urlImage);
+                            }
+
+                            startActivityForResult(intent, PERMISSION_TAKE_PICTURE);
+                        }else{
+                            Toast.makeText(getApplicationContext(), "Permission denied", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
+                        token.continuePermissionRequest();
+                    }
+                }).check();
+    }
+    public File createImageFile(){
+        String timeStamp=new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String fileName="JPEG_"+timeStamp+"_";
+
+        File directory=getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image= null;
+        try {
+            image = File.createTempFile(fileName, ".jpg", directory);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        urlCurrentImage="file://"+image.getAbsolutePath();
+
+        return image;
     }
 }

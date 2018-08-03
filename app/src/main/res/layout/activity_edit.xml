@@ -5,7 +5,7 @@
     android:id="@+id/coordinator"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Activities.MainActivity">
+    tools:context=".Activities.EditActivity">
 
     <android.support.design.widget.AppBarLayout
         android:theme="@style/AppTheme.AppBarOverlay"

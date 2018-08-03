@@ -1,8 +1,10 @@
 package com.example.iram.photofilters.Fragments;
 
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -15,7 +17,7 @@ import android.view.ViewGroup;
 
 import com.example.iram.photofilters.Adapter.ThumbnailAdapter;
 import com.example.iram.photofilters.Interface.FiltersListFragmentListener;
-import com.example.iram.photofilters.Activities.MainActivity;
+import com.example.iram.photofilters.Activities.EditActivity;
 import com.example.iram.photofilters.R;
 import com.example.iram.photofilters.Utils.BitmapUtils;
 import com.example.iram.photofilters.Utils.SpacesItemDecoration;
@@ -37,7 +39,6 @@ public class FiltersListFragment extends Fragment implements FiltersListFragment
     List<ThumbnailItem> thumbnailItems;
 
     FiltersListFragmentListener listener;
-
 
     public void setListener(FiltersListFragmentListener listener) {
         this.listener = listener;
@@ -75,20 +76,20 @@ public class FiltersListFragment extends Fragment implements FiltersListFragment
             @Override
             public void run() {
                 Bitmap thumbImg;
-                if (bitmap==null)thumbImg= BitmapUtils.getBitmapFromAssets(getActivity(), MainActivity.pictureName, 100, 100);
+                if (bitmap==null)thumbImg= BitmapUtils.getBitmapFromAssets(getActivity(), EditActivity.pictureName, 100, 100);
                 else thumbImg=Bitmap.createScaledBitmap(bitmap, 100, 100, false);
 
                 if (thumbImg==null)
                     return;
                 ThumbnailsManager.clearThumbs();
-                thumbnailItems.clear();
+                if (thumbnailItems!=null)thumbnailItems.clear();
 
                 ThumbnailItem thumbnailItem=new ThumbnailItem();
                 thumbnailItem.image=thumbImg;
                 thumbnailItem.filterName="Normal";
                 ThumbnailsManager.addThumb(thumbnailItem);
 
-                List<Filter> filters=FilterPack.getFilterPack(getActivity());
+                List<Filter> filters = FilterPack.getFilterPack(getActivity());
 
                 for (Filter filter: filters){
                     ThumbnailItem thumbnailItem1=new ThumbnailItem();
@@ -113,5 +114,10 @@ public class FiltersListFragment extends Fragment implements FiltersListFragment
     @Override
     public void onFilterSelected(Filter filter) {
         if (listener!=null) listener.onFilterSelected(filter);
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
     }
 }

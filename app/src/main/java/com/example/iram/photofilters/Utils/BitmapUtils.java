@@ -62,6 +62,22 @@ public class BitmapUtils {
         options.inJustDecodeBounds=false;
         return BitmapFactory.decodeFile(picturePath, options);
     }
+    public static Bitmap getBitmapFromCamera(Context context, Uri uri, int width, int height){
+        InputStream stream=null;
+        try {
+            stream=context.getContentResolver().openInputStream(uri);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        BitmapFactory.Options options=new BitmapFactory.Options();
+        options.inJustDecodeBounds=true;
+        options.inSampleSize=calculateInSampleSize(options, width, height);
+        options.inJustDecodeBounds=false;
+        final Bitmap bitmap= BitmapFactory.decodeStream(stream, null, options);
+
+        return bitmap;
+    }
 
     public static Bitmap applyOverlay(Context context, Bitmap sourceImage, int overlayDrawableResourceId){
         Bitmap bitmap = null;
@@ -224,4 +240,5 @@ public class BitmapUtils {
             return  null;
         }
     }
+
 }

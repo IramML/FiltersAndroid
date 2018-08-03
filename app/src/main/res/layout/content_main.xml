@@ -7,8 +7,8 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     android:background="@android:color/white"
     android:orientation="vertical"
-    tools:context=".Activities.MainActivity"
-    tools:showIn="@layout/activity_main">
+    tools:context=".Activities.EditActivity"
+    tools:showIn="@layout/activity_edit">
     <ImageView
         android:id="@+id/image_preview"
         android:scaleType="centerCrop"
